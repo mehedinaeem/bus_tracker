@@ -28,6 +28,10 @@
     <nav class="navbar bg-secondary">
         <div class="container-fluid">
             <a class="navbar-brand text-white">Bus Tracking System</a>
+            <form action="{% url 'login' %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger bg-white">Log In</button>
+            </form>
         </div>
     </nav>
     {% block content %}
