@@ -1,2 +1,2 @@
-python 3
-django
+python_version==3.12.*
+django==4.2.11
