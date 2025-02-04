@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        #map { height: 650px; width: 100%; }
+    </style>
+</head>
+<body>
+    <h2>GPS Tracker</h2>
+    <div id="map"></div>
+
+    <script>
+        var map = L.map('map').setView([24.5, 90.5], 12);  // Default position
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 30,
+        }).addTo(map);
+
+        var userLocationMarker; // Marker for the user's location
+
+        // Get and show the user's current location
+        function showUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var userLat = position.coords.latitude;
+                    var userLon = position.coords.longitude;
+
+                    // If the marker doesn't exist, create it
+                    if (!userLocationMarker) {
+                        userLocationMarker = L.marker([userLat, userLon]).addTo(map);
+                        userLocationMarker.bindPopup('You are here').openPopup();
+                    } else {
+                        userLocationMarker.setLatLng([userLat, userLon]);
+                    }
+
+                    map.setView([userLat, userLon], 15);
+                }, function() {
+                    alert("Unable to retrieve your location.");
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Fetch GPS data from ESP32
+        function updateMap() {
+            fetch('/gsm/get-gps-data/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        var latestData = data[data.length - 1];
+                        var lat = latestData.latitude;
+                        var lon = latestData.longitude;
+
+                        // Update map to the GPS data's position
+                        map.setView([lat, lon], 15);
+
+                        // Add a marker for the GPS data
+                        L.marker([lat, lon]).addTo(map)
+                          .bindPopup(`Latitude: ${lat}, Longitude: ${lon}`)
+                          .openPopup();
+                    }
+                });
+        }
+
+        // Show user location on page load
+        showUserLocation();
+
+        // Update the map with ESP32 GPS data every 5 seconds
+        setInterval(updateMap, 5000);  
+    </script>
+</body>
+</html>
