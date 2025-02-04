@@ -26,7 +26,7 @@
 
         // Function to fetch latest location
         function updateLocation() {
-            fetch('http://192.168.210.161:8000/tracker/api/get-latest-location/')  
+            fetch('http://127.0.0.1:8000/tracker/api/get-latest-location/')  
                 .then(response => response.json())
                 .then(data => {
                     const { lat, lng } = data;

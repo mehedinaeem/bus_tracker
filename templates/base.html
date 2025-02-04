@@ -48,7 +48,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-3 mx-3 mb-lg-0">
                     <li class="nav-item">
-                        <a class="btn btn-secondary btn-sm p-1 m-1" href="{% url 'receive_data' %}">Live Location</a>
+                        <a class="btn btn-secondary btn-sm p-1 m-1" href="{% url 'live_map' %}">Live Location</a>
                     </li>
                     <li class="nav-item mx-3">
                         <a class="btn btn-secondary btn-sm p-1 m-1" href="#">Bus Schedule</a>
@@ -86,8 +86,6 @@
             <span class="visually-hidden">Next</span>
         </button>
     </div>
-
-
 
     {% block content %}
     {% endblock %}
