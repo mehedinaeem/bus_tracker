@@ -1,4 +1,4 @@
-* {
+/* * {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
@@ -81,4 +81,10 @@ body {
     color: #10182F;
     border-color: #10182F;
 
+} */
+
+body {
+    background-color: rgb(85, 90, 75);  /* Light gray */
 }
+
+

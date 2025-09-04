@@ -10,4 +10,5 @@ urlpatterns = [
     path("signup/", views.authView, name="signup"),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("accounts/", include("django.contrib.auth.urls")),
+    path("schedule", views.schedule,name='schedule'),
 ]
