@@ -1,158 +1,423 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}Bus Schedule{% endblock %}
+
 {% block css %}
-<link rel="stylesheet" href="{% static 'bus/style.css' %}">
+<style>
+    .schedule-hero {
+        background: linear-gradient(135deg, #0061ff 0%, #00d4aa 100%);
+        padding: 120px 0 60px;
+        color: white;
+        text-align: center;
+    }
+    
+    .schedule-hero h1 {
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 800;
+        margin-bottom: 16px;
+    }
+    
+    .schedule-hero p {
+        font-size: 1.125rem;
+        opacity: 0.9;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .schedule-section {
+        padding: 60px 0 100px;
+        background: #f8fafc;
+    }
+    
+    .schedule-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-top: -40px;
+        position: relative;
+        z-index: 10;
+    }
+    
+    .schedule-header {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        color: white;
+        padding: 24px 30px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    
+    .schedule-header h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .schedule-badge {
+        background: rgba(0, 212, 170, 0.2);
+        color: #00d4aa;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .table-container {
+        padding: 0;
+        overflow-x: auto;
+    }
+    
+    .schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+    }
+    
+    .schedule-table thead {
+        background: #f8fafc;
+    }
+    
+    .schedule-table th {
+        padding: 18px 20px;
+        text-align: left;
+        font-weight: 700;
+        color: #1e293b;
+        border-bottom: 2px solid #e2e8f0;
+        white-space: nowrap;
+    }
+    
+    .schedule-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #475569;
+        vertical-align: middle;
+    }
+    
+    .schedule-table tbody tr:hover {
+        background: #f8fafc;
+    }
+    
+    .vehicle-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    
+    .vehicle-minibus {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+    
+    .vehicle-microbus {
+        background: #fef3c7;
+        color: #b45309;
+    }
+    
+    .vehicle-student {
+        background: #dcfce7;
+        color: #15803d;
+    }
+    
+    .vehicle-combined {
+        background: #f3e8ff;
+        color: #7c3aed;
+    }
+    
+    .time-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        background: #f1f5f9;
+        border-radius: 6px;
+        font-weight: 600;
+        color: #1e293b;
+    }
+    
+    .route-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .route-icon {
+        width: 32px;
+        height: 32px;
+        background: #e0f2fe;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0284c7;
+    }
+    
+    .schedule-image {
+        margin-bottom: 40px;
+        text-align: center;
+    }
+    
+    .schedule-image img {
+        max-width: 100%;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    @media (max-width: 768px) {
+        .schedule-header {
+            padding: 20px;
+        }
+        
+        .schedule-table th,
+        .schedule-table td {
+            padding: 12px 16px;
+            font-size: 0.875rem;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 
-
-<!-- <img src="static/schedule.png" alt="bus schedule">
-<img src="schedule.png" class="d-block w-100 mx-auto p-3 rounded-5 overflow-hidden" alt="bus image">
-<div class="carousel-item active"> -->
-<div>
-    <img src="{% static 'bus/registration/schedule.png' %}" class="d-block mx-auto p-5 rounded-5 overflow-hidden w-50"
-        alt="bus image">
-</div>
-
-
-<!-- <img src="{% static 'schedule.png' %}" alt="bus schedule"> -->
-
-<hr>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bus Schedule</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        body {
-            font-family: sans-serif; /* Use a suitable font */
-        }
-        .table-responsive {
-            overflow-x: auto; /* Enable horizontal scrolling if needed */
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h2 class="mt-4 text-center">Bus Schedule</h2>
-    <div class="table-responsive">
-        <table class="table table-bordered text-center">
-            <thead>
-                <tr>
-                    <th>Vehicle Type</th>
-                    <th>Departure Point</th>
-                    <th>Departure Time</th>
-                    <th>Destination</th>
-                    <th>Arrival Time</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td rowspan="5">Minibus</td>
-                    <td>Mymensingh Town Hall </td>
-                    <td>8:20 AM (Teachers/Staff)</td>
-                    <td rowspan="5">University Campus</td>
-                    <td>7:00 AM (Teachers/Staff)</td>
-                </tr>
-                <tr>
-                    <td>Mymensingh Town Hall </td>
-                    <td>9:30 AM (Teachers)</td>
-                    <td>8:00 AM (Teachers/Staff)</td>
-                </tr>
-                <tr>
-                    <td>Mymensingh Town Hall </td>
-                    <td>7:00 PM (Teachers/Staff)</td>
-                    <td>2:10 PM (Teachers)</td>
-                </tr>
-                <tr>
-                    <td>Mymensingh Town Hall </td>
-                    <td>8:10 PM (Teachers/Staff)</td>
-                    <td>5:10 PM (Teachers/Staff)</td>
-                </tr>
-                <tr>
-                    <td>Mymensingh Town Hall </td>
-                    <td>7:50 AM (Employees)</td>
-                    <td>5:10 PM (Employees)</td>
-                </tr>
-                <tr>
-                    <td>Microbus</td>
-                    <td>Trishal Thana</td>
-                    <td>8:45 AM (Staff)</td>
-                    <td>University Campus</td>
-                    <td>5:10 PM (Teachers/Staff)</td>
-                </tr>
-                <tr>
-                    <td>Microbus</td>
-                    <td>Trishal Thana</td>
-                    <td>9:15 AM (Teachers)</td>
-                    <td>University Campus</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td rowspan="7">Students' Bus</td>
-                    <td>Mymensingh Road & Public Works Office</td>
-                    <td>8:00 AM</td>
-                    <td rowspan="7">University Campus</td>
-                    <td>12:30 PM</td>
-                </tr>
-                <tr>
-                    <td>Mymensingh Road & Public Works Office</td>
-                    <td>8:45 AM</td>
-                    <td>2:15 PM</td>
-                </tr>
-                <tr>
-                    <td>Mymensingh Road & Public Works Office</td>
-                    <td>9:45 AM</td>
-                    <td>3:15 PM</td>
-                </tr>
-                <tr>
-                    <td>Mymensingh Road & Public Works Office</td>
-                    <td>10:45 AM</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Mymensingh Road & Public Works Office</td>
-                    <td>2:00 PM</td>
-                    <td>4:15 PM</td>
-                </tr>
-                <tr>
-                    <td>Mymensingh Road & Public Works Office</td>
-                    <td>6:00 PM</td>
-                    <td>5:15 PM</td>
-                </tr>
-                <tr>
-                    <td>Mymensingh Road & Public Works Office</td>
-                    <td>7:00 PM</td>
-                    <td>8:15 PM</td>
-                </tr>
-                <tr>
-                    <td>Library/Medical Center & Students (Combined Bus)</td>
-                    <td></td>
-                    <td>9:10 PM</td>
-                    <td></td>
-                    <td>8:15 PM</td>
-                </tr>
-                <tr>
-                    <td>Bus (Combined)</td>
-                    <td>Valuka</td>
-                    <td>10:00 AM</td>
-                    <td>University Campus</td>
-                    <td>2:30 PM</td>
-                </tr>
-            </tbody>
-        </table>
+<!-- Hero Section -->
+<section class="schedule-hero">
+    <div class="container">
+        <h1><i class="bi bi-calendar-event me-3"></i>Bus Schedule</h1>
+        <p>Plan your journey with our comprehensive bus timetable</p>
     </div>
-</div>
+</section>
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
+<!-- Schedule Section -->
+<section class="schedule-section">
+    <div class="container">
+        <div class="schedule-card">
+            <div class="schedule-header">
+                <h2>
+                    <i class="bi bi-bus-front"></i>
+                    University Bus Timetable
+                </h2>
+                <span class="schedule-badge">
+                    <i class="bi bi-clock me-1"></i> Updated Daily
+                </span>
+            </div>
+            
+            <div class="table-container">
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th><i class="bi bi-bus-front me-2"></i>Vehicle Type</th>
+                            <th><i class="bi bi-geo-alt me-2"></i>Departure Point</th>
+                            <th><i class="bi bi-clock me-2"></i>Departure Time</th>
+                            <th><i class="bi bi-pin-map me-2"></i>Destination</th>
+                            <th><i class="bi bi-clock-history me-2"></i>Return Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-minibus">🚐 Minibus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-building"></i></span>
+                                    Mymensingh Town Hall
+                                </div>
+                            </td>
+                            <td><span class="time-badge">8:20 AM</span> <small class="text-muted">(Teachers/Staff)</small></td>
+                            <td>University Campus</td>
+                            <td><span class="time-badge">7:00 AM</span> <small class="text-muted">(Teachers/Staff)</small></td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-minibus">🚐 Minibus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-building"></i></span>
+                                    Mymensingh Town Hall
+                                </div>
+                            </td>
+                            <td><span class="time-badge">9:30 AM</span> <small class="text-muted">(Teachers)</small></td>
+                            <td>University Campus</td>
+                            <td><span class="time-badge">8:00 AM</span> <small class="text-muted">(Teachers/Staff)</small></td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-minibus">🚐 Minibus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-building"></i></span>
+                                    Mymensingh Town Hall
+                                </div>
+                            </td>
+                            <td><span class="time-badge">7:00 PM</span> <small class="text-muted">(Teachers/Staff)</small></td>
+                            <td>University Campus</td>
+                            <td><span class="time-badge">2:10 PM</span> <small class="text-muted">(Teachers)</small></td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-minibus">🚐 Minibus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-building"></i></span>
+                                    Mymensingh Town Hall
+                                </div>
+                            </td>
+                            <td><span class="time-badge">8:10 PM</span> <small class="text-muted">(Teachers/Staff)</small></td>
+                            <td>University Campus</td>
+                            <td><span class="time-badge">5:10 PM</span> <small class="text-muted">(Teachers/Staff)</small></td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-minibus">🚐 Minibus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-building"></i></span>
+                                    Mymensingh Town Hall
+                                </div>
+                            </td>
+                            <td><span class="time-badge">7:50 AM</span> <small class="text-muted">(Employees)</small></td>
+                            <td>University Campus</td>
+                            <td><span class="time-badge">5:10 PM</span> <small class="text-muted">(Employees)</small></td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-microbus">🚙 Microbus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-signpost-2"></i></span>
+                                    Trishal Thana
+                                </div>
+                            </td>
+                            <td><span class="time-badge">8:45 AM</span> <small class="text-muted">(Staff)</small></td>
+                            <td>University Campus</td>
+                            <td><span class="time-badge">5:10 PM</span> <small class="text-muted">(Teachers/Staff)</small></td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-microbus">🚙 Microbus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-signpost-2"></i></span>
+                                    Trishal Thana
+                                </div>
+                            </td>
+                            <td><span class="time-badge">9:15 AM</span> <small class="text-muted">(Teachers)</small></td>
+                            <td>University Campus</td>
+                            <td>—</td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-student">🚌 Students' Bus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-buildings"></i></span>
+                                    Mymensingh PWD Office
+                                </div>
+                            </td>
+                            <td><span class="time-badge">8:00 AM</span></td>
+                            <td>University Campus</td>
+                            <td><span class="time-badge">12:30 PM</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-student">🚌 Students' Bus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-buildings"></i></span>
+                                    Mymensingh PWD Office
+                                </div>
+                            </td>
+                            <td><span class="time-badge">8:45 AM</span></td>
+                            <td>University Campus</td>
+                            <td><span class="time-badge">2:15 PM</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-student">🚌 Students' Bus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-buildings"></i></span>
+                                    Mymensingh PWD Office
+                                </div>
+                            </td>
+                            <td><span class="time-badge">9:45 AM</span></td>
+                            <td>University Campus</td>
+                            <td><span class="time-badge">3:15 PM</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-student">🚌 Students' Bus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-buildings"></i></span>
+                                    Mymensingh PWD Office
+                                </div>
+                            </td>
+                            <td><span class="time-badge">10:45 AM</span></td>
+                            <td>University Campus</td>
+                            <td><span class="time-badge">4:15 PM</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-student">🚌 Students' Bus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-buildings"></i></span>
+                                    Mymensingh PWD Office
+                                </div>
+                            </td>
+                            <td><span class="time-badge">2:00 PM</span></td>
+                            <td>University Campus</td>
+                            <td><span class="time-badge">5:15 PM</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-student">🚌 Students' Bus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-buildings"></i></span>
+                                    Mymensingh PWD Office
+                                </div>
+                            </td>
+                            <td><span class="time-badge">6:00 PM</span></td>
+                            <td>University Campus</td>
+                            <td><span class="time-badge">8:15 PM</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-student">🚌 Students' Bus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-buildings"></i></span>
+                                    Mymensingh PWD Office
+                                </div>
+                            </td>
+                            <td><span class="time-badge">7:00 PM</span></td>
+                            <td>University Campus</td>
+                            <td>—</td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-combined">🚐 Combined Bus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-hospital"></i></span>
+                                    Library/Medical Center
+                                </div>
+                            </td>
+                            <td><span class="time-badge">9:10 PM</span></td>
+                            <td>Mymensingh</td>
+                            <td><span class="time-badge">8:15 PM</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="vehicle-badge vehicle-combined">🚐 Combined Bus</span></td>
+                            <td>
+                                <div class="route-info">
+                                    <span class="route-icon"><i class="bi bi-signpost-split"></i></span>
+                                    Valuka
+                                </div>
+                            </td>
+                            <td><span class="time-badge">10:00 AM</span></td>
+                            <td>University Campus</td>
+                            <td><span class="time-badge">2:30 PM</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
 
 {% endblock %}
