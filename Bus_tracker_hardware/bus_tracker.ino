@@ -7,6 +7,8 @@ const char* password = "naeem1234";
 // const char* serverUrl = "http://192.168.210.161/tracker/api/location/";
 const char* serverUrl = "http://192.168.0.191:8000/tracker/api/location/";
 
+// Set to true to test without GPS (sends test coordinates)
+#define DEBUG_MODE true
 
 #define RXPin 16  
 #define TXPin 17  
@@ -15,75 +17,119 @@ TinyGPSPlus gps;
 
 void setup() {
   Serial.begin(115200);
+  delay(1000);
+  Serial.println("\n\n=== ESP32 Bus Tracker Starting ===");
+  
   gpsSerial.begin(9600, SERIAL_8N1, RXPin, TXPin);
 
   WiFi.begin(ssid, password);
-  Serial.print("Connecting to WiFi...");
-  while (WiFi.status() != WL_CONNECTED) {
+  Serial.print("Connecting to WiFi: ");
+  Serial.println(ssid);
+  
+  int wifiAttempts = 0;
+  while (WiFi.status() != WL_CONNECTED && wifiAttempts < 30) {
     delay(1000);
     Serial.print(".");
+    wifiAttempts++;
   }
-  Serial.println("\nWiFi connected!");
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nWiFi connected!");
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
+    Serial.print("Server URL: ");
+    Serial.println(serverUrl);
+  } else {
+    Serial.println("\nFailed to connect to WiFi!");
+  }
 }
 
 void loop() {
-  // Read GPS data
-  while (gpsSerial.available() > 0) {
-    gps.encode(gpsSerial.read());
+  float lat, lng;
+  bool hasValidLocation = false;
+  
+  if (DEBUG_MODE) {
+    // Test coordinates (Karachi) - for testing without GPS
+    lat = 24.860966;
+    lng = 67.001137;
+    hasValidLocation = true;
+    Serial.println("DEBUG MODE: Using test coordinates");
+  } else {
+    // Read GPS data
+    while (gpsSerial.available() > 0) {
+      gps.encode(gpsSerial.read());
+    }
+
+    // Check if GPS location is valid
+    if (gps.location.isValid()) {
+      lat = gps.location.lat();
+      lng = gps.location.lng();
+      
+      // Only valid if not zero
+      if (lat != 0.0 && lng != 0.0) {
+        hasValidLocation = true;
+      }
+    }
+    
+    if (!hasValidLocation) {
+      Serial.println("GPS data not available yet. Waiting for valid data...");
+      delay(5000);
+      return;
+    }
   }
 
-  // If GPS location is valid, send it
-  if (gps.location.isValid()) {
-    float lat = gps.location.lat();
-    float lng = gps.location.lng();
+  // If we have valid location data, send it
+  if (hasValidLocation) {
+    String jsonData = "{\"lat\": " + String(lat, 6) + ", \"lng\": " + String(lng, 6) + "}";
+    Serial.println("Sending JSON: " + jsonData);
 
-    // Only send data if lat and lng are valid and not zero
-    if (lat != 0.0 && lng != 0.0) {
-      String jsonData = "{\"lat\": " + String(lat, 6) + ", \"lng\": " + String(lng, 6) + "}";
-      Serial.println("Sending JSON: " + jsonData);
-
-      // Check WiFi connection status before sending data
-      if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("WiFi disconnected! Reconnecting...");
-        WiFi.begin(ssid, password);
-        int attempts = 0;
-        while (WiFi.status() != WL_CONNECTED && attempts < 10) {
-          delay(1000);
-          Serial.print(".");
-          attempts++;
-        }
-        if (WiFi.status() == WL_CONNECTED) {
-          Serial.println("\nReconnected to WiFi!");
-        } else {
-          Serial.println("\nFailed to reconnect.");
-          return; // Don't proceed if WiFi is still disconnected
-        }
+    // Check WiFi connection status before sending data
+    if (WiFi.status() != WL_CONNECTED) {
+      Serial.println("WiFi disconnected! Reconnecting...");
+      WiFi.begin(ssid, password);
+      int attempts = 0;
+      while (WiFi.status() != WL_CONNECTED && attempts < 10) {
+        delay(1000);
+        Serial.print(".");
+        attempts++;
       }
-
-      // Send POST request to server
-      HTTPClient http;
-      http.begin(serverUrl);
-      http.addHeader("Content-Type", "application/json");
-
-      int httpResponseCode = http.POST(jsonData);
-
-      // Log the HTTP response code and server response
-      Serial.print("HTTP Response code: ");
-      Serial.println(httpResponseCode);
-      if (httpResponseCode > 0) {
-        String response = http.getString();
-        Serial.println("Server Response: " + response);
+      if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("\nReconnected to WiFi!");
       } else {
-        Serial.println("Error sending data");
-        Serial.print("HTTP Error: ");
-        Serial.println(httpResponseCode);
+        Serial.println("\nFailed to reconnect.");
+        delay(5000);
+        return; // Don't proceed if WiFi is still disconnected
       }
-      http.end();
-    } else {
-      Serial.println("Invalid GPS location data. Skipping this update.");
     }
-  } else {
-    Serial.println("GPS data not available yet. Waiting for valid data...");
+
+    // Send POST request to server
+    HTTPClient http;
+    http.begin(serverUrl);
+    http.addHeader("Content-Type", "application/json");
+
+    Serial.println("Sending POST request...");
+    int httpResponseCode = http.POST(jsonData);
+
+    // Log the HTTP response code and server response
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
+    
+    if (httpResponseCode > 0) {
+      String response = http.getString();
+      Serial.println("Server Response: " + response);
+    } else {
+      Serial.println("Error sending data!");
+      Serial.print("HTTP Error code: ");
+      Serial.println(httpResponseCode);
+      // Common error codes:
+      // -1 = Connection refused/failed
+      // -2 = Send header failed
+      // -3 = Send payload failed
+      // -4 = Not connected
+      // -5 = Connection lost
+      // -11 = Read timeout
+    }
+    http.end();
   }
 
   delay(5000); // Delay before sending the next update
