@@ -3,7 +3,7 @@
 #include <TinyGPS++.h>
 
 const char* ssid = "Connecting..._5G";
-const char* password = "naeem1234";
+const char* password = "11223344";
 // const char* serverUrl = "http://192.168.210.161/tracker/api/location/";
 const char* serverUrl = "http://192.168.0.191:8000/tracker/api/location/";
 
