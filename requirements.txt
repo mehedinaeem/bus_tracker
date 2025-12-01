@@ -1,5 +1,11 @@
-python_version==3.12.3
-django==4.2.11
-its from ..
-check branching
-check from ashraful
+Django==5.2.8
+djangorestframework==3.14.0
+python-dotenv==1.0.0
+geopy==2.4.1
+folium==0.15.1
+
+# Production dependencies for Render
+gunicorn==21.2.0
+psycopg[binary]>=3.1.0
+dj-database-url==2.1.0
+whitenoise==6.6.0

@@ -18,3 +18,6 @@ def authView(request):
     else:
         form = UserCreationForm()
     return render(request, 'bus/registration/signup.html', {"form": form})
+
+def schedule(request):
+    return render(request,'bus/registration/schedule.html')
