@@ -11,9 +11,8 @@ const char* password = "naeem1234";
 // For LOCAL development:
 // const char* serverUrl = "http://192.168.0.191:8000/tracker/api/location/";
 
-// For PRODUCTION (Render) - Replace YOUR_APP_NAME with your actual Render app name:
-// const char* serverUrl = "https://YOUR_APP_NAME.onrender.com/tracker/api/location/";
-const char* serverUrl = "https://bus-tracker.onrender.com/tracker/api/location/";
+// For PRODUCTION (Render):
+const char* serverUrl = "https://bus-tracker-ievh.onrender.com/tracker/api/location/";
 // ============================================
 
 // Set to true to test without GPS (sends test coordinates)
