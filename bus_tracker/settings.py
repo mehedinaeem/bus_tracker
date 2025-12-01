@@ -100,7 +100,7 @@ WSGI_APPLICATION = 'bus_tracker.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# Use PostgreSQL in production (Render), SQLite in development
+# Use DATABASE_URL from environment (Render sets this automatically)
 if os.environ.get('DATABASE_URL'):
     DATABASES = {
         'default': dj_database_url.config(
@@ -110,7 +110,7 @@ if os.environ.get('DATABASE_URL'):
         )
     }
 else:
-    # Local development with SQLite
+    # Local development - SQLite (simpler for local dev)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
