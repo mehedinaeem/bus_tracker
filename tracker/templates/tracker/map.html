@@ -271,19 +271,22 @@
         /* Custom Marker */
         .bus-marker-container {
             position: relative;
+            width: 56px;
+            height: 42px;
         }
         
         .bus-marker {
-            width: 48px;
-            height: 48px;
-            background: var(--gradient);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 4px 15px rgba(0, 97, 255, 0.4);
-            border: 3px solid var(--white);
+            width: 56px;
+            height: 42px;
+            position: relative;
+            z-index: 2;
+            transition: transform 0.3s ease;
+        }
+        
+        .bus-marker svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
         }
         
         .bus-marker-pulse {
@@ -291,11 +294,12 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 48px;
-            height: 48px;
-            background: rgba(0, 97, 255, 0.3);
+            width: 50px;
+            height: 50px;
+            background: rgba(220, 38, 38, 0.3);
             border-radius: 50%;
             animation: marker-pulse 2s infinite;
+            z-index: 1;
         }
         
         @keyframes marker-pulse {
@@ -424,22 +428,105 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Custom bus icon
-        const busIcon = L.divIcon({
-            html: `
-                <div class="bus-marker-container">
-                    <div class="bus-marker-pulse"></div>
-                    <div class="bus-marker">🚌</div>
-                </div>
-            `,
-            className: '',
-            iconSize: [48, 48],
-            iconAnchor: [24, 24]
-        });
+        // Side-view red bus SVG icon (facing right by default)
+        const busSvg = `
+            <svg viewBox="0 0 64 48" xmlns="http://www.w3.org/2000/svg">
+                <!-- Shadow under bus -->
+                <ellipse cx="32" cy="46" rx="28" ry="3" fill="rgba(0,0,0,0.2)"/>
+                <!-- Bus body -->
+                <path d="M4,38 L4,14 Q4,8 10,8 L54,8 Q60,8 60,14 L60,38 Q60,40 58,40 L6,40 Q4,40 4,38 Z" fill="#dc2626" stroke="#1f2937" stroke-width="2"/>
+                <!-- Roof line -->
+                <path d="M6,14 Q6,10 12,10 L52,10 Q58,10 58,14" fill="none" stroke="#1f2937" stroke-width="1.5"/>
+                <!-- Front windshield -->
+                <path d="M50,12 L56,12 Q58,12 58,14 L58,28 L50,28 Q48,28 48,26 L48,14 Q48,12 50,12 Z" fill="#7dd3fc" stroke="#1f2937" stroke-width="1.5"/>
+                <!-- Windows -->
+                <rect x="10" y="14" width="10" height="12" rx="2" fill="#7dd3fc" stroke="#1f2937" stroke-width="1.5"/>
+                <rect x="24" y="14" width="10" height="12" rx="2" fill="#7dd3fc" stroke="#1f2937" stroke-width="1.5"/>
+                <rect x="38" y="14" width="8" height="12" rx="2" fill="#7dd3fc" stroke="#1f2937" stroke-width="1.5"/>
+                <!-- Door -->
+                <rect x="24" y="14" width="10" height="24" rx="1" fill="#b91c1c" stroke="#1f2937" stroke-width="1.5"/>
+                <rect x="26" y="16" width="6" height="10" rx="1" fill="#7dd3fc" stroke="#1f2937" stroke-width="1"/>
+                <line x1="29" y1="26" x2="29" y2="36" stroke="#1f2937" stroke-width="1.5"/>
+                <!-- Door handle -->
+                <circle cx="31" cy="32" r="1" fill="#1f2937"/>
+                <!-- Bumpers -->
+                <rect x="2" y="36" width="60" height="4" rx="2" fill="#374151"/>
+                <!-- Front bumper detail -->
+                <rect x="56" y="30" width="4" height="6" rx="1" fill="#374151"/>
+                <!-- Rear bumper detail -->
+                <rect x="4" y="30" width="4" height="6" rx="1" fill="#374151"/>
+                <!-- Rear light -->
+                <rect x="4" y="20" width="3" height="6" rx="1" fill="#fbbf24" stroke="#1f2937" stroke-width="1"/>
+                <!-- Front light -->
+                <rect x="57" y="20" width="3" height="6" rx="1" fill="#fef3c7" stroke="#1f2937" stroke-width="1"/>
+                <!-- Wheels -->
+                <circle cx="16" cy="40" r="7" fill="#1f2937" stroke="#1f2937" stroke-width="1"/>
+                <circle cx="16" cy="40" r="5" fill="#374151"/>
+                <circle cx="16" cy="40" r="2.5" fill="#fbbf24"/>
+                <circle cx="48" cy="40" r="7" fill="#1f2937" stroke="#1f2937" stroke-width="1"/>
+                <circle cx="48" cy="40" r="5" fill="#374151"/>
+                <circle cx="48" cy="40" r="2.5" fill="#fbbf24"/>
+                <!-- Wheel arches -->
+                <path d="M8,38 Q8,32 16,32 Q24,32 24,38" fill="#b91c1c" stroke="#1f2937" stroke-width="1.5"/>
+                <path d="M40,38 Q40,32 48,32 Q56,32 56,38" fill="#b91c1c" stroke="#1f2937" stroke-width="1.5"/>
+                <!-- Mirror -->
+                <rect x="58" y="14" width="4" height="3" rx="1" fill="#1f2937"/>
+            </svg>
+        `;
+
+        // Function to create bus icon with direction (flip horizontally for left/right)
+        function createBusIcon(facingRight = true) {
+            const flipStyle = facingRight ? '' : 'scaleX(-1)';
+            return L.divIcon({
+                html: `
+                    <div class="bus-marker-container">
+                        <div class="bus-marker-pulse"></div>
+                        <div class="bus-marker" style="transform: ${flipStyle};">
+                            ${busSvg}
+                        </div>
+                    </div>
+                `,
+                className: '',
+                iconSize: [56, 42],
+                iconAnchor: [28, 21]
+            });
+        }
 
         // State
         let busMarker = null;
         let hasInitialLocation = false;
+        let lastPosition = null;
+        let busFacingRight = true;
+
+        // Calculate bearing (direction angle) between two coordinates
+        function calculateBearing(lat1, lng1, lat2, lng2) {
+            const toRad = (deg) => deg * Math.PI / 180;
+            const toDeg = (rad) => rad * 180 / Math.PI;
+            
+            const dLng = toRad(lng2 - lng1);
+            const lat1Rad = toRad(lat1);
+            const lat2Rad = toRad(lat2);
+            
+            const x = Math.sin(dLng) * Math.cos(lat2Rad);
+            const y = Math.cos(lat1Rad) * Math.sin(lat2Rad) - 
+                      Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
+            
+            let bearing = toDeg(Math.atan2(x, y));
+            return (bearing + 360) % 360; // Normalize to 0-360
+        }
+
+        // Determine if bus should face right based on bearing
+        // Right: 0-180° (North to South going East)
+        // Left: 180-360° (South to North going West)
+        function shouldFaceRight(bearing) {
+            return bearing >= 0 && bearing < 180;
+        }
+
+        // Check if the bus has moved significantly (to avoid direction change on noise)
+        function hasMovedSignificantly(lat1, lng1, lat2, lng2) {
+            const threshold = 0.00005; // About 5 meters
+            return Math.abs(lat2 - lat1) > threshold || Math.abs(lng2 - lng1) > threshold;
+        }
 
         // Update status badge
         function updateStatus(status) {
@@ -486,21 +573,32 @@
                         // Hide loading overlay
                         document.getElementById('loading').classList.add('hidden');
                         
+                        // Calculate direction if we have a previous position
+                        if (lastPosition && hasMovedSignificantly(lastPosition.lat, lastPosition.lng, lat, lng)) {
+                            const bearing = calculateBearing(lastPosition.lat, lastPosition.lng, lat, lng);
+                            busFacingRight = shouldFaceRight(bearing);
+                            console.log('Bus direction updated:', bearing.toFixed(1) + '°', busFacingRight ? '→ Right' : '← Left');
+                        }
+                        
                         if (!busMarker) {
                             // Create marker on first valid location
-                            busMarker = L.marker([lat, lng], { icon: busIcon }).addTo(map);
+                            busMarker = L.marker([lat, lng], { icon: createBusIcon(busFacingRight) }).addTo(map);
                             busMarker.bindPopup(`
                                 <div class="popup-title">🚌 Bus Location</div>
                                 <div class="popup-info">Last updated: ${new Date().toLocaleTimeString()}</div>
                             `);
                         } else {
-                            // Update existing marker
+                            // Update existing marker position and direction
                             busMarker.setLatLng([lat, lng]);
+                            busMarker.setIcon(createBusIcon(busFacingRight));
                             busMarker.setPopupContent(`
                                 <div class="popup-title">🚌 Bus Location</div>
                                 <div class="popup-info">Last updated: ${new Date().toLocaleTimeString()}</div>
                             `);
                         }
+                        
+                        // Store current position as last position for next update
+                        lastPosition = { lat, lng };
                         
                         // Center map on first load
                         if (!hasInitialLocation) {
