@@ -152,6 +152,40 @@
             color: var(--white);
         }
         
+        .follow-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--light);
+            border: 2px solid transparent;
+            border-radius: 50px;
+            color: var(--gray);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .follow-btn:hover {
+            background: #e2e8f0;
+        }
+        
+        .follow-btn.active {
+            background: rgba(0, 212, 170, 0.15);
+            color: #059669;
+            border-color: #059669;
+        }
+        
+        .follow-btn.active i {
+            animation: bounce 1s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+        }
+        
         /* Map Container */
         .map-container {
             padding-top: 72px;
@@ -362,6 +396,10 @@
         </a>
         
         <div class="header-status">
+            <button class="follow-btn active" id="followBtn" title="Auto-follow bus">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span>Following</span>
+            </button>
             <div class="status-badge status-live" id="statusBadge">
                 <span class="status-dot"></span>
                 <span id="statusText">Connecting...</span>
@@ -497,6 +535,7 @@
         let hasInitialLocation = false;
         let lastPosition = null;
         let busFacingRight = true;
+        let autoFollow = true; // Auto-follow mode (like Google Maps)
 
         // Calculate bearing (direction angle) between two coordinates
         function calculateBearing(lat1, lng1, lat2, lng2) {
@@ -600,10 +639,17 @@
                         // Store current position as last position for next update
                         lastPosition = { lat, lng };
                         
-                        // Center map on first load
+                        // Center map on bus location
                         if (!hasInitialLocation) {
+                            // First load - set view immediately
                             map.setView([lat, lng], 16);
                             hasInitialLocation = true;
+                        } else if (autoFollow) {
+                            // Smooth pan to keep bus centered (like Google Maps)
+                            map.panTo([lat, lng], {
+                                animate: true,
+                                duration: 0.5
+                            });
                         }
                         
                         updateStatus('live');
@@ -628,6 +674,43 @@
                     document.getElementById('busStatus').innerHTML = '<span style="color: #dc2626;">● Connection error</span>';
                 });
         }
+
+        // Toggle auto-follow mode
+        function setAutoFollow(enabled) {
+            autoFollow = enabled;
+            const btn = document.getElementById('followBtn');
+            const icon = btn.querySelector('i');
+            const text = btn.querySelector('span');
+            
+            if (enabled) {
+                btn.classList.add('active');
+                icon.className = 'bi bi-geo-alt-fill';
+                text.textContent = 'Following';
+                // Re-center on bus immediately
+                if (lastPosition) {
+                    map.panTo([lastPosition.lat, lastPosition.lng], {
+                        animate: true,
+                        duration: 0.3
+                    });
+                }
+            } else {
+                btn.classList.remove('active');
+                icon.className = 'bi bi-geo-alt';
+                text.textContent = 'Follow Bus';
+            }
+        }
+        
+        // Follow button click handler
+        document.getElementById('followBtn').addEventListener('click', function() {
+            setAutoFollow(!autoFollow);
+        });
+        
+        // Disable auto-follow when user drags the map
+        map.on('dragstart', function() {
+            if (autoFollow) {
+                setAutoFollow(false);
+            }
+        });
 
         // Load last location immediately when page opens
         updateLocation();
