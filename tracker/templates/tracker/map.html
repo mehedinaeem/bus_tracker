@@ -152,39 +152,6 @@
             color: var(--white);
         }
         
-        .follow-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            background: var(--light);
-            border: 2px solid transparent;
-            border-radius: 50px;
-            color: var(--gray);
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .follow-btn:hover {
-            background: #e2e8f0;
-        }
-        
-        .follow-btn.active {
-            background: rgba(0, 212, 170, 0.15);
-            color: #059669;
-            border-color: #059669;
-        }
-        
-        .follow-btn.active i {
-            animation: bounce 1s infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-2px); }
-        }
         
         /* Map Container */
         .map-container {
@@ -302,25 +269,26 @@
             margin-top: 8px;
         }
         
-        /* Custom Marker */
+        /* Custom Marker - Car Style */
         .bus-marker-container {
             position: relative;
-            width: 56px;
-            height: 42px;
+            width: 40px;
+            height: 50px;
         }
         
         .bus-marker {
-            width: 56px;
-            height: 42px;
+            width: 40px;
+            height: 50px;
             position: relative;
             z-index: 2;
-            transition: transform 0.3s ease;
+            transition: transform 0.4s ease-out;
+            transform-origin: center center;
         }
         
         .bus-marker svg {
             width: 100%;
             height: 100%;
-            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.35));
         }
         
         .bus-marker-pulse {
@@ -328,9 +296,9 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 50px;
-            height: 50px;
-            background: rgba(220, 38, 38, 0.3);
+            width: 45px;
+            height: 45px;
+            background: rgba(66, 133, 244, 0.25);
             border-radius: 50%;
             animation: marker-pulse 2s infinite;
             z-index: 1;
@@ -338,7 +306,7 @@
         
         @keyframes marker-pulse {
             0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
         }
         
         /* Leaflet Popup Custom */
@@ -396,10 +364,6 @@
         </a>
         
         <div class="header-status">
-            <button class="follow-btn active" id="followBtn" title="Auto-follow bus">
-                <i class="bi bi-geo-alt-fill"></i>
-                <span>Following</span>
-            </button>
             <div class="status-badge status-live" id="statusBadge">
                 <span class="status-dot"></span>
                 <span id="statusText">Connecting...</span>
@@ -466,67 +430,54 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Side-view red bus SVG icon (facing right by default)
-        const busSvg = `
-            <svg viewBox="0 0 64 48" xmlns="http://www.w3.org/2000/svg">
-                <!-- Shadow under bus -->
-                <ellipse cx="32" cy="46" rx="28" ry="3" fill="rgba(0,0,0,0.2)"/>
-                <!-- Bus body -->
-                <path d="M4,38 L4,14 Q4,8 10,8 L54,8 Q60,8 60,14 L60,38 Q60,40 58,40 L6,40 Q4,40 4,38 Z" fill="#dc2626" stroke="#1f2937" stroke-width="2"/>
-                <!-- Roof line -->
-                <path d="M6,14 Q6,10 12,10 L52,10 Q58,10 58,14" fill="none" stroke="#1f2937" stroke-width="1.5"/>
+        // Top-down car SVG (pointing UP by default = 0°)
+        const carSvg = `
+            <svg viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
+                <!-- Car shadow -->
+                <ellipse cx="20" cy="46" rx="14" ry="3" fill="rgba(0,0,0,0.2)"/>
+                <!-- Car body -->
+                <rect x="8" y="10" width="24" height="34" rx="5" fill="#4285F4"/>
+                <!-- Car roof/cabin -->
+                <rect x="10" y="16" width="20" height="18" rx="3" fill="#5a9cff"/>
                 <!-- Front windshield -->
-                <path d="M50,12 L56,12 Q58,12 58,14 L58,28 L50,28 Q48,28 48,26 L48,14 Q48,12 50,12 Z" fill="#7dd3fc" stroke="#1f2937" stroke-width="1.5"/>
-                <!-- Windows -->
-                <rect x="10" y="14" width="10" height="12" rx="2" fill="#7dd3fc" stroke="#1f2937" stroke-width="1.5"/>
-                <rect x="24" y="14" width="10" height="12" rx="2" fill="#7dd3fc" stroke="#1f2937" stroke-width="1.5"/>
-                <rect x="38" y="14" width="8" height="12" rx="2" fill="#7dd3fc" stroke="#1f2937" stroke-width="1.5"/>
-                <!-- Door -->
-                <rect x="24" y="14" width="10" height="24" rx="1" fill="#b91c1c" stroke="#1f2937" stroke-width="1.5"/>
-                <rect x="26" y="16" width="6" height="10" rx="1" fill="#7dd3fc" stroke="#1f2937" stroke-width="1"/>
-                <line x1="29" y1="26" x2="29" y2="36" stroke="#1f2937" stroke-width="1.5"/>
-                <!-- Door handle -->
-                <circle cx="31" cy="32" r="1" fill="#1f2937"/>
-                <!-- Bumpers -->
-                <rect x="2" y="36" width="60" height="4" rx="2" fill="#374151"/>
-                <!-- Front bumper detail -->
-                <rect x="56" y="30" width="4" height="6" rx="1" fill="#374151"/>
-                <!-- Rear bumper detail -->
-                <rect x="4" y="30" width="4" height="6" rx="1" fill="#374151"/>
-                <!-- Rear light -->
-                <rect x="4" y="20" width="3" height="6" rx="1" fill="#fbbf24" stroke="#1f2937" stroke-width="1"/>
-                <!-- Front light -->
-                <rect x="57" y="20" width="3" height="6" rx="1" fill="#fef3c7" stroke="#1f2937" stroke-width="1"/>
+                <rect x="12" y="12" width="16" height="8" rx="2" fill="#1a1a2e"/>
+                <!-- Rear windshield -->
+                <rect x="12" y="30" width="16" height="6" rx="2" fill="#1a1a2e"/>
+                <!-- Front lights -->
+                <rect x="10" y="8" width="6" height="3" rx="1" fill="#fef3c7"/>
+                <rect x="24" y="8" width="6" height="3" rx="1" fill="#fef3c7"/>
+                <!-- Rear lights -->
+                <rect x="10" y="42" width="5" height="2" rx="1" fill="#ef4444"/>
+                <rect x="25" y="42" width="5" height="2" rx="1" fill="#ef4444"/>
+                <!-- Side mirrors -->
+                <rect x="4" y="18" width="4" height="3" rx="1" fill="#4285F4"/>
+                <rect x="32" y="18" width="4" height="3" rx="1" fill="#4285F4"/>
                 <!-- Wheels -->
-                <circle cx="16" cy="40" r="7" fill="#1f2937" stroke="#1f2937" stroke-width="1"/>
-                <circle cx="16" cy="40" r="5" fill="#374151"/>
-                <circle cx="16" cy="40" r="2.5" fill="#fbbf24"/>
-                <circle cx="48" cy="40" r="7" fill="#1f2937" stroke="#1f2937" stroke-width="1"/>
-                <circle cx="48" cy="40" r="5" fill="#374151"/>
-                <circle cx="48" cy="40" r="2.5" fill="#fbbf24"/>
-                <!-- Wheel arches -->
-                <path d="M8,38 Q8,32 16,32 Q24,32 24,38" fill="#b91c1c" stroke="#1f2937" stroke-width="1.5"/>
-                <path d="M40,38 Q40,32 48,32 Q56,32 56,38" fill="#b91c1c" stroke="#1f2937" stroke-width="1.5"/>
-                <!-- Mirror -->
-                <rect x="58" y="14" width="4" height="3" rx="1" fill="#1f2937"/>
+                <rect x="5" y="14" width="4" height="8" rx="2" fill="#1f2937"/>
+                <rect x="31" y="14" width="4" height="8" rx="2" fill="#1f2937"/>
+                <rect x="5" y="32" width="4" height="8" rx="2" fill="#1f2937"/>
+                <rect x="31" y="32" width="4" height="8" rx="2" fill="#1f2937"/>
+                <!-- Car outline -->
+                <rect x="8" y="10" width="24" height="34" rx="5" fill="none" stroke="#3b82f6" stroke-width="1"/>
+                <!-- Direction indicator (front arrow) -->
+                <polygon points="20,4 24,10 16,10" fill="#ffffff"/>
             </svg>
         `;
 
-        // Function to create bus icon with direction (flip horizontally for left/right)
-        function createBusIcon(facingRight = true) {
-            const flipStyle = facingRight ? '' : 'scaleX(-1)';
+        // Function to create car icon with rotation
+        function createCarIcon(rotation = 0) {
             return L.divIcon({
                 html: `
                     <div class="bus-marker-container">
                         <div class="bus-marker-pulse"></div>
-                        <div class="bus-marker" style="transform: ${flipStyle};">
-                            ${busSvg}
+                        <div class="bus-marker" style="transform: rotate(${rotation}deg);">
+                            ${carSvg}
                         </div>
                     </div>
                 `,
                 className: '',
-                iconSize: [56, 42],
-                iconAnchor: [28, 21]
+                iconSize: [40, 50],
+                iconAnchor: [20, 25]
             });
         }
 
@@ -534,8 +485,7 @@
         let busMarker = null;
         let hasInitialLocation = false;
         let lastPosition = null;
-        let busFacingRight = true;
-        let autoFollow = true; // Auto-follow mode (like Google Maps)
+        let currentRotation = 0;
 
         // Calculate bearing (direction angle) between two coordinates
         function calculateBearing(lat1, lng1, lat2, lng2) {
@@ -554,16 +504,9 @@
             return (bearing + 360) % 360; // Normalize to 0-360
         }
 
-        // Determine if bus should face right based on bearing
-        // Right: 0-180° (North to South going East)
-        // Left: 180-360° (South to North going West)
-        function shouldFaceRight(bearing) {
-            return bearing >= 0 && bearing < 180;
-        }
-
-        // Check if the bus has moved significantly (to avoid direction change on noise)
+        // Check if the bus has moved significantly (to avoid rotation on GPS noise)
         function hasMovedSignificantly(lat1, lng1, lat2, lng2) {
-            const threshold = 0.00005; // About 5 meters
+            const threshold = 0.00003; // About 3 meters
             return Math.abs(lat2 - lat1) > threshold || Math.abs(lng2 - lng1) > threshold;
         }
 
@@ -612,24 +555,23 @@
                         // Hide loading overlay
                         document.getElementById('loading').classList.add('hidden');
                         
-                        // Calculate direction if we have a previous position
+                        // Calculate rotation if we have a previous position
                         if (lastPosition && hasMovedSignificantly(lastPosition.lat, lastPosition.lng, lat, lng)) {
-                            const bearing = calculateBearing(lastPosition.lat, lastPosition.lng, lat, lng);
-                            busFacingRight = shouldFaceRight(bearing);
-                            console.log('Bus direction updated:', bearing.toFixed(1) + '°', busFacingRight ? '→ Right' : '← Left');
+                            currentRotation = calculateBearing(lastPosition.lat, lastPosition.lng, lat, lng);
+                            console.log('Car direction updated:', currentRotation.toFixed(1) + '°');
                         }
                         
                         if (!busMarker) {
                             // Create marker on first valid location
-                            busMarker = L.marker([lat, lng], { icon: createBusIcon(busFacingRight) }).addTo(map);
+                            busMarker = L.marker([lat, lng], { icon: createCarIcon(currentRotation) }).addTo(map);
                             busMarker.bindPopup(`
                                 <div class="popup-title">🚌 Bus Location</div>
                                 <div class="popup-info">Last updated: ${new Date().toLocaleTimeString()}</div>
                             `);
                         } else {
-                            // Update existing marker position and direction
+                            // Update existing marker position and rotation
                             busMarker.setLatLng([lat, lng]);
-                            busMarker.setIcon(createBusIcon(busFacingRight));
+                            busMarker.setIcon(createCarIcon(currentRotation));
                             busMarker.setPopupContent(`
                                 <div class="popup-title">🚌 Bus Location</div>
                                 <div class="popup-info">Last updated: ${new Date().toLocaleTimeString()}</div>
@@ -639,13 +581,13 @@
                         // Store current position as last position for next update
                         lastPosition = { lat, lng };
                         
-                        // Center map on bus location
+                        // Always keep car centered on map (like Google Maps navigation)
                         if (!hasInitialLocation) {
                             // First load - set view immediately
                             map.setView([lat, lng], 16);
                             hasInitialLocation = true;
-                        } else if (autoFollow) {
-                            // Smooth pan to keep bus centered (like Google Maps)
+                        } else {
+                            // Always smooth pan to keep car centered
                             map.panTo([lat, lng], {
                                 animate: true,
                                 duration: 0.5
@@ -674,43 +616,6 @@
                     document.getElementById('busStatus').innerHTML = '<span style="color: #dc2626;">● Connection error</span>';
                 });
         }
-
-        // Toggle auto-follow mode
-        function setAutoFollow(enabled) {
-            autoFollow = enabled;
-            const btn = document.getElementById('followBtn');
-            const icon = btn.querySelector('i');
-            const text = btn.querySelector('span');
-            
-            if (enabled) {
-                btn.classList.add('active');
-                icon.className = 'bi bi-geo-alt-fill';
-                text.textContent = 'Following';
-                // Re-center on bus immediately
-                if (lastPosition) {
-                    map.panTo([lastPosition.lat, lastPosition.lng], {
-                        animate: true,
-                        duration: 0.3
-                    });
-                }
-            } else {
-                btn.classList.remove('active');
-                icon.className = 'bi bi-geo-alt';
-                text.textContent = 'Follow Bus';
-            }
-        }
-        
-        // Follow button click handler
-        document.getElementById('followBtn').addEventListener('click', function() {
-            setAutoFollow(!autoFollow);
-        });
-        
-        // Disable auto-follow when user drags the map
-        map.on('dragstart', function() {
-            if (autoFollow) {
-                setAutoFollow(false);
-            }
-        });
 
         // Load last location immediately when page opens
         updateLocation();
